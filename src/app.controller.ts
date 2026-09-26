@@ -7,7 +7,7 @@ class MessageDto { @IsString() @MinLength(1) @MaxLength(10000) content:string; @
 type RequestUser={headers:{authorization?:string};userId:string};
 @Injectable() export class HeaderUserGuard { canActivate(context:{switchToHttp():{getRequest():RequestUser}}){const r=context.switchToHttp().getRequest(); const id=r.headers.authorization?.replace(/^Bearer\s+/i,''); if(!id) throw new UnauthorizedException('Use Bearer <user-id>'); r.userId=id; return true;} }
 @ApiTags('EchoGPT') @Controller() export class AppController { constructor(private readonly service:AppService) {}
-  @Get() status(){return this.service.status()} @Get('health') health(){return {status:'ok'}}
+  @Get() status(){return this.service.status()} 
   @Post('auth/register') register(@Body() d:RegisterDto){return this.service.register(d.email,d.name,d.password)} @Post('auth/login') @HttpCode(200) login(@Body()d:LoginDto){return this.service.login(d.email,d.password)}
   @ApiBearerAuth() @UseGuards(HeaderUserGuard) @Get('users/me') me(@Req()r:RequestUser){return this.service.me(r.userId)}
   @ApiBearerAuth() @UseGuards(HeaderUserGuard) @Get('conversations') list(@Req()r:RequestUser){return this.service.list(r.userId)} @ApiBearerAuth() @UseGuards(HeaderUserGuard) @Post('conversations') create(@Req()r:RequestUser,@Body()d:ConversationDto){return this.service.create(r.userId,d.title)}
