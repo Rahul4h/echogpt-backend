@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum SessionStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  TRIAL
+}
+
+enum AiProviderType {
+  OPENAI
+  ANTHROPIC
+  GOOGLE
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum SearchStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum RequestStatus {
+  SUCCESS
+  ERROR
+}
+
+model User {
+  id             String           @id @default(uuid())
+  email          String           @unique
+  name           String
+  passwordHash   String
+  role           UserRole         @default(USER)
+  emailVerified  Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  sessions       Session[]
+  subscriptions  Subscription[]
+  conversations  Conversation[]
+  webSearches    WebSearch[]
+  apiUsageLogs   ApiUsageLog[]
+  requestLogs    RequestLog[]
+
+  @@index([role])
+  @@index([createdAt])
+}
+
+model Session {
+  id               String        @id @default(uuid())
+  userId           String
+  refreshTokenHash String
+  status           SessionStatus @default(ACTIVE)
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  device           String?
+  ipAddress        String?
+  userAgent        String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model SubscriptionPlan {
+  id              String         @id @default(uuid())
+  name            String         @unique
+  description     String?
+  price           Decimal        @db.Decimal(10, 2)
+  currency        String         @default("USD")
+  requestLimit    Int?
+  tokenLimit      Int?
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  subscriptions Subscription[]
+
+  @@index([isActive])
+}
+
+model Subscription {
+  id          String             @id @default(uuid())
+  userId      String
+  planId      String
+  status      SubscriptionStatus @default(ACTIVE)
+  startedAt   DateTime           @default(now())
+  expiresAt   DateTime?
+  cancelledAt DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  user User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model AiProvider {
+  id          String          @id @default(uuid())
+  name        String          @unique
+  type        AiProviderType
+  baseUrl     String?
+  modelName   String?
+  enabled     Boolean         @default(true)
+  isDefault   Boolean         @default(false)
+  encryptedApiKey String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  conversations Conversation[]
+  webSearches   WebSearch[]
+
+  @@index([type])
+  @@index([enabled])
+  @@index([isDefault])
+}
+
+model Conversation {
+  id         String    @id @default(uuid())
+  userId     String
+  providerId String?
+  title      String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider AiProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  messages Message[]
+
+  @@index([userId])
+  @@index([providerId])
+  @@index([updatedAt])
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String
+  role           MessageRole
+  content        String      @db.Text
+  providerName   String?
+  modelName      String?
+  promptTokens   Int?
+  completionTokens Int?
+  totalTokens    Int?
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model WebSearch {
+  id          String       @id @default(uuid())
+  userId      String
+  providerId  String?
+  query       String
+  pageUrl     String?
+  pageContext String?      @db.Text
+  status      SearchStatus @default(PENDING)
+  resultCount Int?
+  latencyMs   Int?
+  createdAt   DateTime     @default(now())
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider AiProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SearchCache {
+  id          String   @id @default(uuid())
+  cacheKey    String   @unique
+  query       String
+  response    Json
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@index([query])
+}
+
+model ApiUsageLog {
+  id               String        @id @default(uuid())
+  userId           String?
+  provider         String?
+  model            String?
+  requestCount     Int           @default(1)
+  promptTokens     Int?
+  completionTokens Int?
+  totalTokens      Int?
+  status           RequestStatus @default(SUCCESS)
+  latencyMs        Int?
+  createdAt        DateTime      @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([provider])
+  @@index([model])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model RequestLog {
+  id           String        @id @default(uuid())
+  userId       String?
+  method       String
+  path         String
+  statusCode   Int
+  status       RequestStatus
+  latencyMs    Int?
+  ipAddress    String?
+  userAgent    String?
+  requestId    String?
+  createdAt    DateTime      @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([statusCode])
+  @@index([createdAt])
+  @@index([requestId])
+}
