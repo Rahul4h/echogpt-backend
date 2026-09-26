@@ -1,11 +1,46 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+
 import { AppController, HeaderUserGuard } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
+import configuration from './config/configuration';
+import { validate } from './config/env.validation';
+import { AppLogger } from './common/logger/app.logger';
+import { HealthModule } from './health/health.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      validate,
+    }),
+
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 100,
+      },
+    ]),
+
+    PrismaModule,
+
+    HealthModule,
+  ],
+
   controllers: [AppController],
-  providers: [AppService, HeaderUserGuard],
+
+  providers: [
+    AppService,
+    HeaderUserGuard,
+    AppLogger,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

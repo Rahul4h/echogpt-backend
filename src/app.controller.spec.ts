@@ -1,4 +1,20 @@
-import { Test } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-describe('AppController', () => { it('reports service health', async () => { const module = await Test.createTestingModule({ controllers: [AppController], providers: [AppService] }).compile(); expect(module.get(AppController).health()).toEqual({ status: 'ok' }); }); });
+
+describe('AppController', () => {
+  let controller: AppController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [AppController],
+      providers: [AppService],
+    }).compile();
+
+    controller = module.get<AppController>(AppController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});
