@@ -1,114 +1,556 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# EchoGPT Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Production-oriented REST API backend for the **EchoGPT Chrome Extension**, built with NestJS and PostgreSQL.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+The backend is designed around a modular architecture with clear separation of concerns, centralized configuration, validation, error handling, authentication, rate limiting, API documentation, health checks, and database persistence.
 
-## Description
+> **Current status:** Project foundation is complete. Feature development is being implemented incrementally through dedicated feature branches.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## Tech Stack
 
-```bash
-$ npm install
+* **Runtime:** Node.js
+* **Framework:** NestJS
+* **Language:** TypeScript
+* **Database:** PostgreSQL
+* **ORM:** Prisma
+* **API Documentation:** Swagger / OpenAPI
+* **Authentication:** JWT
+* **Validation:** class-validator / class-transformer
+* **Testing:** Jest
+* **Test Transformer:** SWC
+* **Security:** Helmet, CORS
+* **Rate Limiting:** @nestjs/throttler
+* **Package Manager:** npm
+
+---
+
+## Architecture
+
+The project follows a modular NestJS architecture designed to keep business logic isolated from HTTP, infrastructure, and cross-cutting concerns.
+
+```text
+src/
+├── common/
+│   ├── decorators/
+│   ├── filters/
+│   ├── guards/
+│   ├── interceptors/
+│   └── logger/
+│
+├── config/
+│
+├── health/
+│
+├── prisma/
+│
+├── modules/
+│   ├── admin/
+│   ├── auth/
+│   ├── chat/
+│   ├── providers/
+│   ├── subscriptions/
+│   ├── usage/
+│   ├── users/
+│   └── web-search/
+│
+├── app.module.ts
+├── app.controller.ts
+├── app.service.ts
+└── main.ts
+
+prisma/
+└── schema.prisma
 ```
 
-## Compile and run the project
+### Request flow
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```text
+HTTP Request
+     │
+     ▼
+Controller
+     │
+     ▼
+Guard / Validation / Interceptor
+     │
+     ▼
+Service
+     │
+     ▼
+Repository / Prisma
+     │
+     ▼
+PostgreSQL
 ```
 
-## Run tests
+Cross-cutting concerns such as configuration, authentication guards, exception handling, logging, validation, and rate limiting are kept outside individual business modules.
+
+---
+
+## Core Modules
+
+The backend is structured around the following modules:
+
+| Module          | Responsibility                                       |
+| --------------- | ---------------------------------------------------- |
+| `auth`          | Registration, login, JWT authentication and sessions |
+| `users`         | User profile and account management                  |
+| `subscriptions` | Plans, subscriptions and usage limits                |
+| `providers`     | AI provider configuration and credentials            |
+| `chat`          | Conversations and chat messages                      |
+| `web-search`    | Web search integration and caching                   |
+| `usage`         | API and AI usage tracking                            |
+| `admin`         | Administrative operations                            |
+| `health`        | Health and readiness checks                          |
+
+Some modules are currently scaffolding for upcoming feature branches.
+
+---
+
+## Foundation Features
+
+The current project foundation includes:
+
+* Modular project structure
+* Centralized environment configuration
+* Environment variable validation
+* Global request validation
+* Global exception handling
+* API versioning
+* Security headers with Helmet
+* Configurable CORS
+* Global API rate limiting
+* Structured application logging
+* Health and readiness endpoints
+* Swagger/OpenAPI documentation
+* Automated unit tests
+* Production build verification
+* ESLint/Oxlint-based code quality checks
+
+---
+
+## Prerequisites
+
+Make sure the following are installed:
+
+* Node.js
+* npm
+* PostgreSQL
+
+Verify the installations:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+node --version
+npm --version
 ```
 
-## Deployment
+Verify that PostgreSQL is running before starting the application.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Installation
+
+Clone the repository:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+git clone https://github.com/Rahul4h/echogpt-backend.git
+cd echogpt-backend
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Install dependencies:
 
-## Observability
+```bash
+npm install
+```
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+---
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+## Environment Configuration
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+Create a `.env` file in the project root.
 
-## Resources
+Example:
 
-Check out a few resources that may come in handy when working with NestJS:
+```env
+PORT=3000
+NODE_ENV=development
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/echogpt?schema=public"
 
-## Support
+JWT_ACCESS_SECRET=replace_with_long_random_secret
+JWT_REFRESH_SECRET=replace_with_another_long_random_secret
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
 
-## Stay in touch
+ENCRYPTION_KEY=replace_with_secure_encryption_key
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+CORS_ORIGIN=http://localhost:3000
+```
+
+### Important
+
+Never commit `.env` or production secrets to version control.
+
+A sanitized `.env.example` should be used for sharing required configuration with other developers.
+
+---
+
+## Database
+
+The application uses PostgreSQL with Prisma.
+
+After configuring `DATABASE_URL`, generate the Prisma client:
+
+```bash
+npx prisma generate
+```
+
+When database migrations are introduced:
+
+```bash
+npx prisma migrate dev
+```
+
+For production deployments:
+
+```bash
+npx prisma migrate deploy
+```
+
+---
+
+## Running the Application
+
+### Development
+
+```bash
+npm run start
+```
+
+### Watch mode
+
+```bash
+npm run start:dev
+```
+
+### Production
+
+First build the application:
+
+```bash
+npm run build
+```
+
+Then start:
+
+```bash
+npm run start:prod
+```
+
+---
+
+## API
+
+The API uses URI versioning.
+
+Base API URL:
+
+```text
+/api/v1
+```
+
+Example:
+
+```text
+http://localhost:3000/api/v1
+```
+
+---
+
+## Swagger Documentation
+
+Interactive API documentation is available at:
+
+```text
+http://localhost:3000/docs
+```
+
+Swagger provides an interactive interface for exploring and testing the backend API without requiring a frontend application.
+
+---
+
+## Health Checks
+
+Basic health endpoint:
+
+```text
+GET /api/v1/health
+```
+
+Readiness endpoint:
+
+```text
+GET /api/v1/health/readiness
+```
+
+Example:
+
+```json
+{
+  "status": "ok",
+  "service": "echogpt-api",
+  "timestamp": "2026-09-26T00:00:00.000Z"
+}
+```
+
+These endpoints are intended for application monitoring and deployment health checks.
+
+---
+
+## Security
+
+The backend includes several security-oriented foundation features:
+
+### Helmet
+
+HTTP security headers are configured using Helmet.
+
+### CORS
+
+CORS is configurable through the `CORS_ORIGIN` environment variable.
+
+### Input Validation
+
+Requests are validated globally using:
+
+* `class-validator`
+* `class-transformer`
+
+Unknown request properties are rejected.
+
+### Rate Limiting
+
+Global request throttling is configured using `@nestjs/throttler`.
+
+### Authentication
+
+Protected routes are designed to use JWT-based authentication.
+
+### Secrets
+
+Sensitive configuration such as:
+
+* database credentials
+* JWT secrets
+* encryption keys
+* AI provider credentials
+
+must be provided through environment variables and must not be committed to source control.
+
+---
+
+## Error Handling
+
+The application uses a global HTTP exception filter to provide a consistent error response format.
+
+Example:
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "path": "/api/v1/example",
+  "timestamp": "2026-09-26T00:00:00.000Z"
+}
+```
+
+This keeps API error responses predictable across modules.
+
+---
+
+## Testing
+
+Run unit tests:
+
+```bash
+npm test
+```
+
+Run tests in watch mode:
+
+```bash
+npm run test:watch
+```
+
+Generate coverage:
+
+```bash
+npm run test:cov
+```
+
+Run end-to-end tests:
+
+```bash
+npm run test:e2e
+```
+
+The project uses Jest with SWC for TypeScript test transformation.
+
+---
+
+## Code Quality
+
+Run linting:
+
+```bash
+npm run lint
+```
+
+Build the project:
+
+```bash
+npm run build
+```
+
+A production-ready branch should pass:
+
+```text
+npm run lint
+npm run build
+npm test
+```
+
+---
+
+## Development Workflow
+
+Development follows a feature-branch workflow.
+
+```text
+main
+ │
+ ├── feature/project-foundation
+ │
+ ├── feature/database-schema
+ │
+ ├── feature/auth-jwt
+ │
+ ├── feature/subscriptions
+ │
+ ├── feature/ai-providers
+ │
+ ├── feature/chat-api
+ │
+ ├── feature/web-search
+ │
+ └── feature/admin-api
+```
+
+### Branch naming
+
+Use descriptive feature branches:
+
+```text
+feature/database-schema
+feature/auth-jwt
+feature/chat-api
+feature/web-search
+```
+
+### Typical workflow
+
+```bash
+git checkout main
+git pull origin main
+
+git checkout -b feature/<feature-name>
+```
+
+Implement the feature, then verify:
+
+```bash
+npm run lint
+npm run build
+npm test
+```
+
+Commit the changes:
+
+```bash
+git add .
+git commit -m "feat: implement <feature>"
+```
+
+Push the branch:
+
+```bash
+git push -u origin feature/<feature-name>
+```
+
+Open a pull request against `main`.
+
+---
+
+## Production Considerations
+
+Before production deployment, configure:
+
+* Production PostgreSQL
+* Strong JWT secrets
+* Secure encryption key
+* Production CORS origins
+* HTTPS
+* Database migrations
+* Secure cookie/token handling where applicable
+* Proper logging and monitoring
+* Rate limiting appropriate for production traffic
+* AI provider credential encryption
+* Environment-specific configuration
+* Database backups
+* Health/readiness monitoring
+
+---
+
+## Project Status
+
+### Completed
+
+* [x] NestJS project foundation
+* [x] Modular architecture
+* [x] Environment configuration
+* [x] Environment validation
+* [x] Global validation
+* [x] Global exception handling
+* [x] API versioning
+* [x] Helmet
+* [x] CORS
+* [x] Rate limiting
+* [x] Application logger
+* [x] Health/readiness endpoints
+* [x] Swagger/OpenAPI
+* [x] Unit testing setup
+* [x] Production build verification
+
+### In Progress
+
+* [ ] PostgreSQL schema
+* [ ] Prisma migrations
+* [ ] JWT authentication
+* [ ] User management
+* [ ] Subscription and plan management
+* [ ] AI provider management
+* [ ] Chat/conversation APIs
+* [ ] Web search integration
+* [ ] Search caching
+* [ ] Usage tracking
+* [ ] Admin APIs
+* [ ] Production deployment
+
+---
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is developed as part of the EchoGPT backend implementation and interview assignment.
