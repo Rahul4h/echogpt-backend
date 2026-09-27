@@ -13,6 +13,9 @@ import { HealthModule } from './health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { EncryptionModule } from './common/encryption/encryption.module';
+import { ProvidersModule } from './modules/providers/providers.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -36,6 +39,9 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
     AuthModule,
     UsersModule,
     SubscriptionsModule,
+    EncryptionModule,
+    ProvidersModule,
+    AdminModule,
   ],
 
   controllers: [AppController],
