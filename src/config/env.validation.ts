@@ -2,10 +2,9 @@ import { plainToInstance } from 'class-transformer';
 import {
   IsIn,
   IsInt,
-  IsOptional,
   IsString,
-  
   Min,
+  MinLength,
   validateSync,
 } from 'class-validator';
 
@@ -23,25 +22,22 @@ class EnvironmentVariables {
   @IsString()
   CORS_ORIGIN!: string;
 
-  @IsOptional()
   @IsString()
-  JWT_ACCESS_SECRET?: string;
+  @MinLength(32)
+  JWT_ACCESS_SECRET!: string;
 
-  @IsOptional()
   @IsString()
-  JWT_REFRESH_SECRET?: string;
+  @MinLength(32)
+  JWT_REFRESH_SECRET!: string;
 
-  @IsOptional()
   @IsString()
-  JWT_ACCESS_EXPIRES_IN?: string;
+  JWT_ACCESS_EXPIRES_IN!: string;
 
-  @IsOptional()
   @IsString()
-  JWT_REFRESH_EXPIRES_IN?: string;
+  JWT_REFRESH_EXPIRES_IN!: string;
 
-  @IsOptional()
   @IsString()
-  ENCRYPTION_KEY?: string;
+  ENCRYPTION_KEY!: string;
 }
 
 export function validate(config: Record<string, unknown>) {

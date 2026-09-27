@@ -4,21 +4,20 @@ import {
   Delete,
   Get,
   HttpCode,
-  Injectable,
   Param,
   Patch,
   Post,
   Query,
   Req,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+
 import {
   ApiBearerAuth,
   ApiTags,
 } from '@nestjs/swagger';
+
 import {
-  IsEmail,
   IsIn,
   IsInt,
   IsOptional,
@@ -28,31 +27,11 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+
 import { Type } from 'class-transformer';
 import { AppService } from './app.service';
 
-class RegisterDto {
-  @IsEmail()
-  email: string;
-
-  @IsString()
-  @MinLength(2)
-  @MaxLength(80)
-  name: string;
-
-  @IsString()
-  @MinLength(8)
-  @MaxLength(128)
-  password: string;
-}
-
-class LoginDto {
-  @IsEmail()
-  email: string;
-
-  @IsString()
-  password: string;
-}
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 class ConversationDto {
   @IsString()
@@ -88,37 +67,10 @@ class PaginationDto {
 }
 
 type RequestUser = {
-  headers: {
-    authorization?: string;
+  user: {
+    id: string;
   };
-  userId: string;
 };
-
-@Injectable()
-export class HeaderUserGuard {
-  canActivate(context: {
-    switchToHttp(): {
-      getRequest(): RequestUser;
-    };
-  }) {
-    const request = context.switchToHttp().getRequest();
-
-    const id = request.headers.authorization?.replace(
-      /^Bearer\s+/i,
-      '',
-    );
-
-    if (!id) {
-      throw new UnauthorizedException(
-        'Use Bearer <user-id>',
-      );
-    }
-
-    request.userId = id;
-
-    return true;
-  }
-}
 
 @ApiTags('EchoGPT')
 @Controller()
@@ -130,68 +82,50 @@ export class AppController {
     return this.service.status();
   }
 
-  @Post('auth/register')
-  register(@Body() dto: RegisterDto) {
-    return this.service.register(
-      dto.email,
-      dto.name,
-      dto.password,
-    );
-  }
-
-  @Post('auth/login')
-  @HttpCode(200)
-  login(@Body() dto: LoginDto) {
-    return this.service.login(
-      dto.email,
-      dto.password,
-    );
-  }
-
   @ApiBearerAuth()
-  @UseGuards(HeaderUserGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('users/me')
   me(@Req() request: RequestUser) {
-    return this.service.me(request.userId);
+    return this.service.me(request.user.id);
   }
 
   @ApiBearerAuth()
-  @UseGuards(HeaderUserGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('users/me')
   @HttpCode(204)
   async removeAccount(@Req() request: RequestUser) {
-    await this.service.removeAccount(request.userId);
+    await this.service.removeAccount(request.user.id);
   }
 
   @ApiBearerAuth()
-  @UseGuards(HeaderUserGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('conversations')
   list(
     @Req() request: RequestUser,
     @Query() query: PaginationDto,
   ) {
     return this.service.list(
-      request.userId,
+      request.user.id,
       query.page,
       query.limit,
     );
   }
 
   @ApiBearerAuth()
-  @UseGuards(HeaderUserGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('conversations')
   create(
     @Req() request: RequestUser,
     @Body() dto: ConversationDto,
   ) {
     return this.service.create(
-      request.userId,
+      request.user.id,
       dto.title,
     );
   }
 
   @ApiBearerAuth()
-  @UseGuards(HeaderUserGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch('conversations/:id')
   update(
     @Req() request: RequestUser,
@@ -199,14 +133,14 @@ export class AppController {
     @Body() dto: ConversationDto,
   ) {
     return this.service.update(
-      request.userId,
+      request.user.id,
       id,
       dto.title,
     );
   }
 
   @ApiBearerAuth()
-  @UseGuards(HeaderUserGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('conversations/:id')
   @HttpCode(204)
   async remove(
@@ -214,13 +148,13 @@ export class AppController {
     @Param('id') id: string,
   ) {
     await this.service.remove(
-      request.userId,
+      request.user.id,
       id,
     );
   }
 
   @ApiBearerAuth()
-  @UseGuards(HeaderUserGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('conversations/:id/messages')
   messages(
     @Req() request: RequestUser,
@@ -228,7 +162,7 @@ export class AppController {
     @Query() query: PaginationDto,
   ) {
     return this.service.messages(
-      request.userId,
+      request.user.id,
       id,
       query.page,
       query.limit,
@@ -236,7 +170,7 @@ export class AppController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(HeaderUserGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('conversations/:id/messages')
   message(
     @Req() request: RequestUser,
@@ -244,7 +178,7 @@ export class AppController {
     @Body() dto: MessageDto,
   ) {
     return this.service.message(
-      request.userId,
+      request.user.id,
       id,
       dto.content,
       dto.role,
