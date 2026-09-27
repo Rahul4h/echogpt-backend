@@ -3,13 +3,14 @@ import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
-import { AppController, HeaderUserGuard } from './app.controller';
+import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import configuration from './config/configuration';
 import { validate } from './config/env.validation';
 import { AppLogger } from './common/logger/app.logger';
 import { HealthModule } from './health/health.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -29,13 +30,15 @@ import { HealthModule } from './health/health.module';
     PrismaModule,
 
     HealthModule,
+    
+    AuthModule,
   ],
 
   controllers: [AppController],
 
   providers: [
     AppService,
-    HeaderUserGuard,
+    
     AppLogger,
     {
       provide: APP_GUARD,
