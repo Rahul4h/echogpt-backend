@@ -11,6 +11,8 @@ import { validate } from './config/env.validation';
 import { AppLogger } from './common/logger/app.logger';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { AuthModule } from './modules/auth/auth.module';
     HealthModule,
     
     AuthModule,
+    UsersModule,
+    SubscriptionsModule,
   ],
 
   controllers: [AppController],

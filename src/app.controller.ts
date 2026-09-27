@@ -82,20 +82,9 @@ export class AppController {
     return this.service.status();
   }
 
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('users/me')
-  me(@Req() request: RequestUser) {
-    return this.service.me(request.user.id);
-  }
+  
 
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Delete('users/me')
-  @HttpCode(204)
-  async removeAccount(@Req() request: RequestUser) {
-    await this.service.removeAccount(request.user.id);
-  }
+  
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)

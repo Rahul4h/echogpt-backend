@@ -1,16 +1,9 @@
 import {
-  ConflictException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import { PrismaService } from './prisma/prisma.service';
 
-export interface PaginationParams {
-  page: number;
-  limit: number;
-}
+import { PrismaService } from './prisma/prisma.service';
 
 @Injectable()
 export class AppService {
@@ -22,56 +15,6 @@ export class AppService {
       status: 'ok',
       timestamp: new Date().toISOString(),
     };
-  }
-
-  async register(email: string, name: string, password: string) {
-    const normalizedEmail = email.trim().toLowerCase();
-
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: normalizedEmail },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('Email is already registered');
-    }
-
-    const passwordHash = await bcrypt.hash(password, 12);
-
-    const user = await this.prisma.user.create({
-      data: {
-        email: normalizedEmail,
-        name: name.trim(),
-        passwordHash,
-      },
-    });
-
-    return this.safeUser(user);
-  }
-
-  async login(email: string, password: string) {
-    const normalizedEmail = email.trim().toLowerCase();
-
-    const user = await this.prisma.user.findUnique({
-      where: { email: normalizedEmail },
-    });
-
-    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    return this.safeUser(user);
-  }
-
-  async me(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-
-    return this.safeUser(user);
   }
 
   async list(
@@ -244,33 +187,5 @@ export class AppService {
 
       return message;
     });
-  }
-
-  async removeAccount(userId: string) {
-    const result = await this.prisma.user.deleteMany({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (result.count === 0) {
-      throw new NotFoundException('User not found');
-    }
-  }
-
-  private safeUser(user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    createdAt: Date;
-  }) {
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      createdAt: user.createdAt,
-    };
   }
 }
