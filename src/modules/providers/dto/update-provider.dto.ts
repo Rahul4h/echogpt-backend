@@ -7,13 +7,17 @@ import {
   Length,
   MinLength,
 } from 'class-validator';
+
 import { ApiPropertyOptional } from '@nestjs/swagger';
+
 import { ProviderType } from './create-provider.dto';
 
 export class UpdateProviderDto {
   @ApiPropertyOptional({
     example: 'OpenAI Production',
-    description: 'Unique display name for the AI provider.',
+    description: 'Updated unique display name for the AI provider.',
+    minLength: 2,
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -23,7 +27,8 @@ export class UpdateProviderDto {
   @ApiPropertyOptional({
     enum: ProviderType,
     example: ProviderType.OPENAI,
-    description: 'AI provider type.',
+    description:
+      'Updated AI provider type: OPENAI, ANTHROPIC, or GOOGLE.',
   })
   @IsOptional()
   @IsEnum(ProviderType)
@@ -39,7 +44,7 @@ export class UpdateProviderDto {
 
   @ApiPropertyOptional({
     example: 'gpt-5',
-    description: 'Model identifier used for chat requests.',
+    description: 'Updated default model identifier.',
   })
   @IsOptional()
   @IsString()
@@ -47,9 +52,10 @@ export class UpdateProviderDto {
   modelName?: string;
 
   @ApiPropertyOptional({
-    example: 'new-provider-api-key',
+    example: 'sk-example-not-a-real-key',
     description:
       'Optional replacement API key. It is encrypted before storage.',
+    minLength: 8,
   })
   @IsOptional()
   @IsString()
@@ -58,7 +64,7 @@ export class UpdateProviderDto {
 
   @ApiPropertyOptional({
     example: true,
-    description: 'Whether the provider is enabled.',
+    description: 'Enable or disable the provider.',
   })
   @IsOptional()
   @IsBoolean()
@@ -66,7 +72,7 @@ export class UpdateProviderDto {
 
   @ApiPropertyOptional({
     example: false,
-    description: 'Whether this provider should become the default.',
+    description: 'Set whether this provider is the default provider.',
   })
   @IsOptional()
   @IsBoolean()

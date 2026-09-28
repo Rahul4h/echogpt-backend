@@ -16,6 +16,7 @@ import {
 
 import {
   ApiBearerAuth,
+  ApiProperty,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -24,14 +25,31 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 
 class RegisterDto {
+  @ApiProperty({
+    example: 'rahul@example.com',
+    description: 'Unique email address used for account registration.',
+  })
   @IsEmail()
   email!: string;
 
+  @ApiProperty({
+    example: 'Rahul Ghosh',
+    description: 'User display name.',
+    minLength: 2,
+    maxLength: 80,
+  })
   @IsString()
   @MinLength(2)
   @MaxLength(80)
   name!: string;
 
+  @ApiProperty({
+    example: 'StrongPassword123!',
+    description: 'Account password. Must be 8–128 characters.',
+    minLength: 8,
+    maxLength: 128,
+    format: 'password',
+  })
   @IsString()
   @MinLength(8)
   @MaxLength(128)
@@ -39,14 +57,29 @@ class RegisterDto {
 }
 
 class LoginDto {
+  @ApiProperty({
+    example: 'rahul@example.com',
+    description: 'Registered account email address.',
+  })
   @IsEmail()
   email!: string;
 
+  @ApiProperty({
+    example: 'StrongPassword123!',
+    description: 'Account password.',
+    format: 'password',
+  })
   @IsString()
   password!: string;
 }
 
 class RefreshDto {
+  @ApiProperty({
+    example:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example-refresh-token',
+    description:
+      'Refresh token returned by the login or refresh endpoint.',
+  })
   @IsString()
   refreshToken!: string;
 }
@@ -54,7 +87,9 @@ class RefreshDto {
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('register')
   register(@Body() dto: RegisterDto) {
@@ -77,15 +112,18 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(200)
   refresh(@Body() dto: RefreshDto) {
-    return this.authService.refresh(dto.refreshToken);
+    return this.authService.refresh(
+      dto.refreshToken,
+    );
   }
 
-
   @Post('logout')
-@HttpCode(200)
-logout(@Body() dto: RefreshDto) {
-  return this.authService.logout(dto.refreshToken);
-}
+  @HttpCode(200)
+  logout(@Body() dto: RefreshDto) {
+    return this.authService.logout(
+      dto.refreshToken,
+    );
+  }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
