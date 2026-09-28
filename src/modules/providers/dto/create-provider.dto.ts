@@ -7,7 +7,11 @@ import {
   Length,
   MinLength,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 
 export enum ProviderType {
   OPENAI = 'OPENAI',
@@ -19,6 +23,8 @@ export class CreateProviderDto {
   @ApiProperty({
     example: 'OpenAI Primary',
     description: 'Unique display name for the AI provider.',
+    minLength: 2,
+    maxLength: 100,
   })
   @IsString()
   @Length(2, 100)
@@ -27,7 +33,8 @@ export class CreateProviderDto {
   @ApiProperty({
     enum: ProviderType,
     example: ProviderType.OPENAI,
-    description: 'AI provider type.',
+    description:
+      'AI provider type. Supported values: OPENAI, ANTHROPIC, GOOGLE.',
   })
   @IsEnum(ProviderType)
   type: ProviderType;
@@ -43,7 +50,8 @@ export class CreateProviderDto {
 
   @ApiPropertyOptional({
     example: 'gpt-5',
-    description: 'Model identifier used for chat requests.',
+    description:
+      'Default model used for chat requests when no model override is provided.',
   })
   @IsOptional()
   @IsString()
@@ -51,9 +59,10 @@ export class CreateProviderDto {
   modelName?: string;
 
   @ApiProperty({
-    example: 'your-provider-api-key',
+    example: 'sk-example-not-a-real-key',
     description:
-      'Provider API key. It is encrypted before being stored and is never returned in plaintext.',
+      'Provider API key. It is encrypted before storage and never returned in plaintext.',
+    minLength: 8,
   })
   @IsString()
   @MinLength(8)

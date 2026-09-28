@@ -184,6 +184,30 @@ const provider = data.isDefault
   return this.toSafeResponse(updated);
 }
 
+
+
+  async getRuntimeProvider(id?: string) {
+    const provider = id
+      ? await this.providersRepository.findById(id)
+      : await this.providersRepository.findDefault();
+
+    if (!provider) {
+      throw new NotFoundException(
+        id
+          ? 'Provider not found'
+          : 'No default AI provider is configured',
+      );
+    }
+
+    if (!provider.enabled) {
+      throw new ConflictException(
+        'Selected AI provider is disabled',
+      );
+    }
+
+    return provider;
+  }
+
   async setDefault(id: string) {
   const provider = await this.providersRepository.findById(id);
 

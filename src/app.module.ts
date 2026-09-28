@@ -16,6 +16,10 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
 import { EncryptionModule } from './common/encryption/encryption.module';
 import { ProvidersModule } from './modules/providers/providers.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { UsageModule } from './modules/usage/usage.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 
 @Module({
   imports: [
@@ -41,6 +45,8 @@ import { AdminModule } from './modules/admin/admin.module';
     SubscriptionsModule,
     EncryptionModule,
     ProvidersModule,
+    UsageModule,
+    ChatModule,
     AdminModule,
   ],
 
@@ -54,6 +60,10 @@ import { AdminModule } from './modules/admin/admin.module';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    {
+  provide: APP_INTERCEPTOR,
+  useClass: RequestLoggingInterceptor,
+   },
   ],
 })
 export class AppModule {}
