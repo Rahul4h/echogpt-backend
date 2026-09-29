@@ -28,9 +28,7 @@ The backend provides authentication, user management, subscriptions and usage li
 * [Database Design](#database-design)
 * [Testing](#testing)
 * [Code Quality](#code-quality)
-* [Git Workflow](#git-workflow)
-* [Postman](#postman)
-* [Docker](#docker)
+* [Git Workflow](#git-workflow) 
 * [Known Limitations](#known-limitations)
 * [Troubleshooting](#troubleshooting)
 * [Submission Information](#submission-information)
@@ -172,32 +170,6 @@ Provider functionality includes:
 
 The application is organized around feature-based NestJS modules.
 
-```text
-Client / Chrome Extension
-          |
-          v
-     REST API
-          |
-          v
-       NestJS
-          |
-  +-------+--------+----------------+
-  |       |        |                |
- Auth   Users   Subscriptions    Chat
-  |       |        |                |
-  +-------+--------+----------------+
-          |
-     Business Services
-          |
-  +-------+--------+----------------+
-  |                |                |
- Prisma         Providers       Web Search
-  |                |                |
-  +----------------+----------------+
-                   |
-                   v
-              PostgreSQL
-```
 
 The API uses a global `/api` prefix and URI-based API versioning.
 
@@ -327,19 +299,12 @@ TAVILY_API_KEY=
 | `GOOGLE_SEARCH_ENGINE_ID` | Optional Google Custom Search engine ID                |
 | `TAVILY_API_KEY`          | Tavily search API credential                           |
 
-### Security Note
-
-Never commit `.env` or real credentials to Git.
-
-Use `.env.example` as the template for required configuration.
-
-For production deployments, use a secure secrets-management mechanism or environment variables provided by the hosting platform.
 
 ---
 
 # PostgreSQL Setup
 
-Docker is **not required** for this project.
+
 
 The backend can run against a normal local PostgreSQL installation.
 
@@ -940,9 +905,7 @@ This keeps the main branch stable while allowing individual features to be devel
 
 ---
 
-# Postman
 
-A Postman collection can be used as an optional alternative to Swagger for API testing.
 
 Swagger is the primary API documentation source:
 
@@ -950,25 +913,11 @@ Swagger is the primary API documentation source:
 http://localhost:3000/docs
 ```
 
-When using Postman, authenticated requests should include:
 
-```text
-Authorization: Bearer <access_token>
 ```
 
 ---
 
-# Docker
-
-Docker is **optional** for this assignment.
-
-The assignment specifies:
-
-> Docker (Optional but recommended)
-
-Therefore, the application does not require Docker to run.
-
-The current development setup can use a locally installed PostgreSQL server.
 
 Recommended local architecture:
 
@@ -1164,4 +1113,4 @@ From Swagger:
 
 ## License
 
-This project is an assignment submission and is not intended for redistribution as a commercial product.
+This project is an assignment submission .
