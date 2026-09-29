@@ -1,16 +1,17 @@
-
 import {
+  Body,
   Controller,
   Get,
-  Query,
   Param,
   Patch,
-  Body,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
@@ -25,7 +26,6 @@ import { AdminUsersService } from './admin-users.service';
 import { AdminUsersQueryDto } from './dto/admin-users-query.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
-
 
 @ApiTags('Admin - Users')
 @ApiBearerAuth()
@@ -96,6 +96,7 @@ export class AdminUsersController {
             email: 'rahul@example.com',
             name: 'Rahul',
             role: 'USER',
+            status: 'ACTIVE',
             emailVerified: true,
             createdAt: '2026-09-29T08:00:00.000Z',
             updatedAt: '2026-09-29T08:00:00.000Z',
@@ -112,106 +113,148 @@ export class AdminUsersController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Invalid query parameters.',
+    description:
+      'Invalid query parameters. For example, page, limit, role, sortBy, or sortOrder contains an invalid value.',
   })
   @ApiResponse({
     status: 401,
-    description: 'Authentication required.',
+    description:
+      'Authentication is required or the access token is invalid or expired.',
   })
   @ApiResponse({
     status: 403,
-    description: 'Admin role required.',
+    description:
+      'The authenticated user does not have the ADMIN role.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Unexpected server error.',
   })
   getUsers(@Query() query: AdminUsersQueryDto) {
     return this.adminUsersService.findUsers(query);
   }
 
-
   @Patch(':id/role')
-@ApiOperation({
-  summary: 'Update user role',
-  description: 'Updates the role of a user. Only administrators can perform this action.',
-})
-@ApiResponse({
-  status: 200,
-  description: 'User role updated successfully.',
-  schema: {
-    example: {
-      id: '35bdd3ef-437e-46f9-8076-e5235b6c725f',
-      email: 'rahul@example.com',
-      name: 'Rahul Ghosh',
-      role: 'ADMIN',
-      emailVerified: false,
-      createdAt: '2026-09-29T08:00:00.000Z',
-      updatedAt: '2026-09-29T08:15:00.000Z',
+  @ApiOperation({
+    summary: 'Update user role',
+    description:
+      'Changes the role of an existing user. Only administrators can perform this action.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'User UUID.',
+    example: '35bdd3ef-437e-46f9-8076-e5235b6c725f',
+  })
+  @ApiBody({
+    type: UpdateUserRoleDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User role updated successfully.',
+    schema: {
+      example: {
+        id: '35bdd3ef-437e-46f9-8076-e5235b6c725f',
+        email: 'rahul@example.com',
+        name: 'Rahul Ghosh',
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        emailVerified: false,
+        createdAt: '2026-09-29T08:00:00.000Z',
+        updatedAt: '2026-09-29T08:15:00.000Z',
+      },
     },
-  },
-})
-@ApiResponse({
-  status: 400,
-  description: 'Invalid user ID or role.',
-})
-@ApiResponse({
-  status: 401,
-  description: 'Authentication required.',
-})
-@ApiResponse({
-  status: 403,
-  description: 'Admin role required.',
-})
-@ApiResponse({
-  status: 404,
-  description: 'User not found.',
-})
-updateUserRole(
-  @Param('id') id: string,
-  @Body() dto: UpdateUserRoleDto,
-) {
-  return this.adminUsersService.updateUserRole(id, dto.role);
-}
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid request body or user ID.',
+  })
+  @ApiResponse({
+    status: 401,
+    description:
+      'Authentication is required or the access token is invalid or expired.',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'The authenticated user does not have the ADMIN role.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User was not found.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Unexpected server error.',
+  })
+  updateUserRole(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserRoleDto,
+  ) {
+    return this.adminUsersService.updateUserRole(
+      id,
+      dto.role,
+    );
+  }
 
-@Patch(':id/status')
-@ApiOperation({
-  summary: 'Update user status',
-  description:
-    'Updates the status of a user. Only administrators can perform this action.',
-})
-@ApiResponse({
-  status: 200,
-  description: 'User status updated successfully.',
-  schema: {
-    example: {
-      id: '35bdd3ef-437e-46f9-8076-e5235b6c725f',
-      email: 'rahul@example.com',
-      name: 'Rahul Ghosh',
-      role: 'USER',
-      status: 'SUSPENDED',
-      emailVerified: false,
-      createdAt: '2026-09-29T08:00:00.000Z',
-      updatedAt: '2026-09-29T08:15:00.000Z',
+  @Patch(':id/status')
+  @ApiOperation({
+    summary: 'Update user status',
+    description:
+      'Changes the status of an existing user between ACTIVE and SUSPENDED. Only administrators can perform this action.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'User UUID.',
+    example: '35bdd3ef-437e-46f9-8076-e5235b6c725f',
+  })
+  @ApiBody({
+    type: UpdateUserStatusDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User status updated successfully.',
+    schema: {
+      example: {
+        id: '35bdd3ef-437e-46f9-8076-e5235b6c725f',
+        email: 'rahul@example.com',
+        name: 'Rahul Ghosh',
+        role: 'USER',
+        status: 'SUSPENDED',
+        emailVerified: false,
+        createdAt: '2026-09-29T08:00:00.000Z',
+        updatedAt: '2026-09-29T08:15:00.000Z',
+      },
     },
-  },
-})
-@ApiResponse({
-  status: 400,
-  description: 'Invalid user ID or status.',
-})
-@ApiResponse({
-  status: 401,
-  description: 'Authentication required.',
-})
-@ApiResponse({
-  status: 403,
-  description: 'Admin role required.',
-})
-@ApiResponse({
-  status: 404,
-  description: 'User not found.',
-})
-updateUserStatus(
-  @Param('id') id: string,
-  @Body() dto: UpdateUserStatusDto,
-) {
-  return this.adminUsersService.updateUserStatus(id, dto.status);
-}
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid request body or user ID.',
+  })
+  @ApiResponse({
+    status: 401,
+    description:
+      'Authentication is required or the access token is invalid or expired.',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'The authenticated user does not have the ADMIN role.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User was not found.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Unexpected server error.',
+  })
+  updateUserStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserStatusDto,
+  ) {
+    return this.adminUsersService.updateUserStatus(
+      id,
+      dto.status,
+    );
+  }
 }

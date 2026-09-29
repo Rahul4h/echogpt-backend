@@ -86,6 +86,12 @@ export class AdminDashboardController {
     status: 403,
     description: 'Admin role required.',
   })
+
+  @ApiResponse({
+  status: 500,
+  description: 'Unexpected server error.',
+})
+
   getDashboard() {
     return this.adminService.getDashboard();
   }

@@ -135,6 +135,12 @@ export class AdminSubscriptionsController {
     status: 403,
     description: 'Admin role required.',
   })
+
+    @ApiResponse({
+    status: 500,
+    description: 'Unexpected server error.',
+  })
+
   getSubscriptions(@Query() query: AdminSubscriptionsQueryDto) {
     return this.adminSubscriptionsService.findSubscriptions(query);
   }

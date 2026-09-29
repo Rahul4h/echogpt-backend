@@ -134,6 +134,10 @@ export class AdminUsageController {
     status: 403,
     description: 'Admin role required.',
   })
+  @ApiResponse({
+  status: 500,
+  description: 'Unexpected server error.',
+})
   getUsage(@Query() query: AdminUsageQueryDto) {
     return this.adminUsageService.findUsage(query);
   }

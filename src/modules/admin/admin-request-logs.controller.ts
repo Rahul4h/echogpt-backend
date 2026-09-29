@@ -142,6 +142,11 @@ export class AdminRequestLogsController {
     status: 403,
     description: 'Admin role required.',
   })
+
+  @ApiResponse({
+  status: 500,
+  description: 'Unexpected server error.',
+})
   getRequestLogs(@Query() query: AdminRequestLogsQueryDto) {
     return this.adminRequestLogsService.findRequestLogs(query);
   }
