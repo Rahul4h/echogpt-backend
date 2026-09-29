@@ -888,7 +888,17 @@ Example:
 ```text
 main
  |
+ +-- feature/project-foundation
+ |
+ +-- feature/database-schema
+ |
+ +-- feature/database-persistence
+ |
  +-- feature/auth-jwt
+ |
+ +-- feature/users-subscriptions
+ |
+ +-- feature/ai-providers
  |
  +-- feature/chat-api
  |
