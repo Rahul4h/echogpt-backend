@@ -61,7 +61,8 @@ export class AdminController {
   })
   @ApiResponse({
     status: 409,
-    description: 'Provider name already exists or provider configuration conflicts.',
+    description:
+      'Provider name already exists or provider configuration conflicts.',
   })
   create(@Body() dto: CreateProviderDto) {
     return this.providersService.create(dto);
@@ -152,7 +153,8 @@ export class AdminController {
   })
   @ApiResponse({
     status: 409,
-    description: 'Provider name already exists or configuration conflicts.',
+    description:
+      'Provider name already exists or configuration conflicts.',
   })
   update(
     @Param('id') id: string,
