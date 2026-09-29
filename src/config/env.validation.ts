@@ -1,7 +1,9 @@
 import { plainToInstance } from 'class-transformer';
+
 import {
   IsIn,
   IsInt,
+  IsOptional,
   IsString,
   Min,
   MinLength,
@@ -38,12 +40,28 @@ class EnvironmentVariables {
 
   @IsString()
   ENCRYPTION_KEY!: string;
+
+  @IsOptional()
+  @IsString()
+  GOOGLE_SEARCH_API_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  GOOGLE_SEARCH_ENGINE_ID?: string;
+
+    @IsOptional()
+  @IsString()
+  TAVILY_API_KEY?: string;
 }
 
 export function validate(config: Record<string, unknown>) {
-  const validatedConfig = plainToInstance(EnvironmentVariables, config, {
-    enableImplicitConversion: true,
-  });
+  const validatedConfig = plainToInstance(
+    EnvironmentVariables,
+    config,
+    {
+      enableImplicitConversion: true,
+    },
+  );
 
   const errors = validateSync(validatedConfig, {
     skipMissingProperties: false,
@@ -52,7 +70,9 @@ export function validate(config: Record<string, unknown>) {
   if (errors.length > 0) {
     throw new Error(
       `Environment validation failed: ${errors
-        .map((error) => Object.values(error.constraints ?? {}).join(', '))
+        .map((error) =>
+          Object.values(error.constraints ?? {}).join(', '),
+        )
         .join('; ')}`,
     );
   }

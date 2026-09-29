@@ -42,7 +42,10 @@ export class ProviderHttpClient {
         if (response.ok) {
           return data as T;
         }
-
+         console.error('AI provider HTTP error:', {
+  status: response.status,
+  data,
+});
         if (!this.isRetryableStatus(response.status)) {
           throw this.mapHttpError(
             response.status,
