@@ -106,14 +106,19 @@ export class AdminUsersRepository {
 }
 
 
-updateUserStatus(userId: string, status: 'ACTIVE' | 'SUSPENDED') {
+async updateUserStatus(userId: string, status: 'ACTIVE' | 'SUSPENDED') {
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
+
+  if (!user) {
+    return null;
+  }
+
   return this.prisma.user.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      status,
-    },
+    where: { id: userId },
+    data: { status },
     select: {
       id: true,
       email: true,

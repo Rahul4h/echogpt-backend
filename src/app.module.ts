@@ -52,11 +52,11 @@ import { WebSearchModule } from './modules/web-search/web-search.module';
     AdminModule,
   ],
 
+  
   controllers: [AppController],
-
   providers: [
-    AppService,
     
+    AppService,
     AppLogger,
     {
       provide: APP_GUARD,
