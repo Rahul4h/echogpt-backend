@@ -14,17 +14,20 @@ import type {
 import { ProviderHttpClient } from '../http/provider-http.client';
 
 interface GeminiResponse {
-  candidates?: Array<{
-    content?: {
-      parts?: Array<{
-        text?: string;
-      }>;
-    };
+  status?: string;
+
+  steps?: Array<{
+    type?: string;
+    content?: Array<{
+      type?: string;
+      text?: string;
+    }>;
   }>;
-  usageMetadata?: {
-    promptTokenCount?: number;
-    candidatesTokenCount?: number;
-    totalTokenCount?: number;
+
+  usage?: {
+    total_input_tokens?: number;
+    total_output_tokens?: number;
+    total_tokens?: number;
   };
 }
 
@@ -35,9 +38,7 @@ interface GeminiModelsResponse {
 }
 
 @Injectable()
-export class GeminiAdapter
-  implements AiProviderAdapter
-{
+export class GeminiAdapter implements AiProviderAdapter {
   private readonly defaultBaseUrl =
     'https://generativelanguage.googleapis.com/v1beta';
 
@@ -63,32 +64,25 @@ export class GeminiAdapter
       this.config.baseUrl ??
       this.defaultBaseUrl;
 
-    const contents = [
+    const inputParts = [
       ...(request.conversation ?? [])
         .filter(
           (message) =>
             message.role !== 'SYSTEM',
         )
-        .map((message) => ({
-          role:
+        .map((message) => {
+          const role =
             message.role === 'ASSISTANT'
-              ? 'model'
-              : 'user',
-          parts: [
-            {
-              text: message.content,
-            },
-          ],
-        })),
-      {
-        role: 'user',
-        parts: [
-          {
-            text: request.message,
-          },
-        ],
-      },
+              ? 'Assistant'
+              : 'User';
+
+          return `${role}: ${message.content}`;
+        }),
+
+      `User: ${request.message}`,
     ];
+
+    const input = inputParts.join('\n\n');
 
     const systemMessage =
       request.conversation?.find(
@@ -98,50 +92,57 @@ export class GeminiAdapter
 
     const response =
       await this.httpClient.request<GeminiResponse>(
-        `${baseUrl}/models/${model}:generateContent?key=${encodeURIComponent(this.config.apiKey)}`,
+        `${baseUrl}/interactions`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'x-goog-api-key': this.config.apiKey,
           },
           body: JSON.stringify({
-            contents,
+            model,
+            input,
+
             ...(systemMessage && {
-              systemInstruction: {
-                parts: [
-                  {
-                    text: systemMessage.content,
-                  },
-                ],
+              system_instruction:
+                systemMessage.content,
+            }),
+
+            ...(request.maxTokens !== undefined && {
+              generation_config: {
+                max_output_tokens:
+                  request.maxTokens,
               },
             }),
-            generationConfig: {
-              ...(request.temperature !== undefined && {
-                temperature: request.temperature,
-              }),
-              ...(request.maxTokens !== undefined && {
-                maxOutputTokens:
-                  request.maxTokens,
-              }),
-            },
           }),
         },
       );
 
     const content =
-      response.candidates
-        ?.flatMap(
-          (candidate) =>
-            candidate.content?.parts ?? [],
+      response.steps
+        ?.filter(
+          (step) =>
+            step.type === 'model_output',
         )
-        .map((part) => part.text ?? '')
+        .flatMap(
+          (step) =>
+            step.content ?? [],
+        )
+        .filter(
+          (part) =>
+            part.type === 'text',
+        )
+        .map(
+          (part) =>
+            part.text ?? '',
+        )
         .join('') ?? '';
 
     const promptTokens =
-      response.usageMetadata?.promptTokenCount;
+      response.usage?.total_input_tokens;
 
     const completionTokens =
-      response.usageMetadata?.candidatesTokenCount;
+      response.usage?.total_output_tokens;
 
     return {
       content,
@@ -150,10 +151,11 @@ export class GeminiAdapter
       promptTokens,
       completionTokens,
       totalTokens:
-        response.usageMetadata?.totalTokenCount ??
+        response.usage?.total_tokens ??
         (promptTokens !== undefined &&
         completionTokens !== undefined
-          ? promptTokens + completionTokens
+          ? promptTokens +
+            completionTokens
           : undefined),
     };
   }
@@ -167,7 +169,9 @@ export class GeminiAdapter
 
     try {
       await this.httpClient.request<GeminiModelsResponse>(
-        `${baseUrl}/models?key=${encodeURIComponent(this.config.apiKey)}`,
+        `${baseUrl}/models?key=${encodeURIComponent(
+          this.config.apiKey,
+        )}`,
         {
           method: 'GET',
         },
@@ -176,13 +180,15 @@ export class GeminiAdapter
       return {
         healthy: true,
         provider: 'GOOGLE',
-        latencyMs: Date.now() - startedAt,
+        latencyMs:
+          Date.now() - startedAt,
       };
     } catch (error) {
       return {
         healthy: false,
         provider: 'GOOGLE',
-        latencyMs: Date.now() - startedAt,
+        latencyMs:
+          Date.now() - startedAt,
         message:
           error instanceof Error
             ? error.message

@@ -20,6 +20,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { UsageModule } from './modules/usage/usage.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
+import { WebSearchModule } from './modules/web-search/web-search.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { RequestLoggingInterceptor } from './common/interceptors/request-logging
     ProvidersModule,
     UsageModule,
     ChatModule,
+    WebSearchModule,
     AdminModule,
   ],
 
